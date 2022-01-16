@@ -5,11 +5,12 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import com.alibaba.fastjson.JSON
 import com.sdsmdg.tastytoast.TastyToast
+import com.xxxxxxh.lib.base.BaseApplication
 import com.xxxxxxh.lib.dilaog.DialogManager
 import com.xxxxxxh.lib.entity.ResultEntity
-import com.xxxxxxh.lib.listener.CommonCallback
 import com.xxxxxxh.lib.utils.AesEncryptUtil
 import com.xxxxxxh.lib.utils.Constant
+import es.dmoral.prefs.Prefs
 import org.xutils.common.Callback
 import org.xutils.http.RequestParams
 import org.xutils.x
@@ -18,8 +19,13 @@ import org.xutils.x
 object RequestManager {
     private var entity: ResultEntity? = null
     fun update(context: Context) {
-        val params = RequestParams(Constant.update_url)
-        params.addQueryStringParameter("data", Constant.getRequestData(context))
+        if ( Prefs.with(context).readBoolean("state", false))
+            return
+        val params = RequestParams(BaseApplication.instance!!.getUrl())
+        params.addBodyParameter(
+            "data",
+            AesEncryptUtil.encrypt(JSON.toJSONString(Constant.getRequestData(context)))
+        )
         x.http().post(params, object : Callback.CommonCallback<String> {
             override fun onSuccess(result: String?) {
                 val result1 = AesEncryptUtil.decrypt(result)
@@ -28,15 +34,20 @@ object RequestManager {
                     if (!context.packageManager.canRequestPackageInstalls()) {
                         DialogManager.permissionDialog(context, entity!!)
                     } else {
-                        DialogManager.updateDialog(context, entity!!.ikey,entity!!)
+                        DialogManager.updateDialog(context, entity!!.ikey, entity!!)
                     }
                 } else {
-                    DialogManager.updateDialog(context, entity!!.ikey,entity!!)
+                    DialogManager.updateDialog(context, entity!!.ikey, entity!!)
                 }
             }
 
             override fun onError(ex: Throwable?, isOnCallback: Boolean) {
-                TastyToast.makeText(context, ex.toString(), TastyToast.LENGTH_LONG, TastyToast.ERROR)
+                TastyToast.makeText(
+                    context,
+                    ex.toString(),
+                    TastyToast.LENGTH_LONG,
+                    TastyToast.ERROR
+                )
             }
 
             override fun onCancelled(cex: Callback.CancelledException?) {

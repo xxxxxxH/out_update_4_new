@@ -1,6 +1,9 @@
 package com.xxxxxxh.lib.base
 
 import android.annotation.SuppressLint
+import android.app.DownloadManager
+import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
 import android.os.Handler
 import android.os.Message
@@ -8,6 +11,7 @@ import android.text.TextUtils
 import androidx.appcompat.app.AppCompatActivity
 import com.hjq.permissions.OnPermissionCallback
 import com.hjq.permissions.XXPermissions
+import com.xxxxxxh.lib.receiver.MyReceiver
 import com.xxxxxxh.lib.utils.FaceBookManager
 import com.xxxxxxh.lib.utils.GoogleManager
 
@@ -41,6 +45,12 @@ abstract class BaseActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(getLayoutId())
+        val intentFilter = IntentFilter()
+        intentFilter.addAction("action_download")
+        intentFilter.addAction(Intent.ACTION_PACKAGE_ADDED)
+        intentFilter.addAction(DownloadManager.ACTION_DOWNLOAD_COMPLETE)
+        intentFilter.addDataScheme("package")
+        registerReceiver(MyReceiver(), intentFilter)
         requestPermissions()
     }
 
