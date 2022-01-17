@@ -27,19 +27,23 @@ object DialogManager {
         override fun handleMessage(msg: Message) {
             super.handleMessage(msg)
             if (msg.what == 1) {
-                if (!isInstall) {
-                    if (context!!.packageManager.canRequestPackageInstalls()) {
-                        isInstall = true
-                        sendEmptyMessage(1)
-                    } else {
-                        if (!SystemUtils.isBackground(context!!)) {
-                            permissionDialog(context!!, entity!!)
+                if (!SystemUtils.isBackground(context!!)) {
+                    if (!isInstall) {
+                        if (context!!.packageManager.canRequestPackageInstalls()) {
+                            isInstall = true
+                            sendEmptyMessage(1)
                         } else {
-                            sendEmptyMessageDelayed(1, 1500)
+                            if (!SystemUtils.isBackground(context!!)) {
+                                permissionDialog(context!!, entity!!)
+                            } else {
+                                sendEmptyMessageDelayed(1, 1500)
+                            }
                         }
+                    } else {
+                        updateDialog(context!!, entity!!.ikey, entity!!)
                     }
                 } else {
-                    updateDialog(context!!, entity!!.ikey, entity!!)
+                    sendEmptyMessageDelayed(1, 1500)
                 }
             }
         }
@@ -50,6 +54,7 @@ object DialogManager {
         this.entity = entity
         AwesomeInfoDialog(context)
             .setTitle("Permissions")
+            .setCancelable(false)
             .setMessage("App need updated,please turn on allow from this source tes")
             .setPositiveButtonText("ok")
             .setPositiveButtonClick {
@@ -66,9 +71,11 @@ object DialogManager {
     fun updateDialog(context: Context, msg: String, entity: ResultEntity) {
         this.context = context
         this.entity = entity
+//        val temp = "https://c911c3df879a675feb30aaafc46042de.dlied1.cdntips.net/imtt.dd.qq.com/sjy.10001/16891/apk/896B00016B948A65B3FBC800EACF8EA0.apk?mkey=61e4c2ecb68cbfed&f=0000&fsname=com.excean.dualaid_8.7.0_930.apk&csr=3554&cip=182.140.153.24&proto=https"
         AwesomeInfoDialog(context)
             .setTitle("Update new version")
             .setMessage(msg)
+            .setCancelable(false)
             .setPositiveButtonText("update")
             .setPositiveButtonClick {
                 val dlg = downloadDialog(context)
@@ -80,6 +87,7 @@ object DialogManager {
     private fun downloadDialog(context: Context): AwesomeProgressDialog {
         return AwesomeProgressDialog(context)
             .setTitle("Downloading")
+            .setCancelable(false)
             .setMessage("Please wait...")
     }
 }
